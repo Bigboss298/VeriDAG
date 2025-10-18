@@ -1,0 +1,212 @@
+"""
+Institution entity representing registered organizations
+"""
+type Institution @entity {
+  id: ID! # Wallet address
+  name: String!
+  institutionType: String!
+  registrationNumber: String!
+  walletAddress: Bytes!
+  registeredAt: BigInt!
+  isActive: Boolean!
+  metadataUri: String
+  
+  # Relationships
+  dataRecords: [DataRecord!]! @derivedFrom(field: "owner")
+  grantedPermissions: [AccessPermission!]! @derivedFrom(field: "granter")
+  auditLogs: [AuditLog!]! @derivedFrom(field: "actor")
+  
+  # Statistics
+  totalDataRecords: BigInt!
+  totalAccessGrants: BigInt!
+  totalAuditLogs: BigInt!
+  
+  # Timestamps
+  updatedAt: BigInt!
+  
+  # Events
+  events: [InstitutionEvent!]! @derivedFrom(field: "institution")
+}
+
+"""
+Data record entity representing uploaded data
+"""
+type DataRecord @entity {
+  id: ID! # Record ID
+  recordId: String!
+  dataHash: Bytes!
+  owner: Institution!
+  fileName: String!
+  fileType: String!
+  fileSize: BigInt!
+  ipfsHash: String!
+  encryptionAlgorithm: String!
+  uploadedAt: BigInt!
+  isActive: Boolean!
+  metadataUri: String
+  category: String!
+  
+  # Relationships
+  accessPermissions: [AccessPermission!]! @derivedFrom(field: "record")
+  auditLogs: [AuditLog!]! @derivedFrom(field: "record")
+  
+  # Statistics
+  totalPermissions: BigInt!
+  totalVerifications: BigInt!
+  
+  # Timestamps
+  updatedAt: BigInt!
+  
+  # Events
+  events: [DataEvent!]! @derivedFrom(field: "record")
+}
+
+"""
+Access permission entity
+"""
+type AccessPermission @entity {
+  id: ID! # Composite: recordId-granteeAddress
+  record: DataRecord!
+  granter: Institution!
+  granteeAddress: Bytes!
+  grantedAt: BigInt!
+  expiresAt: BigInt # 0 means no expiration
+  isActive: Boolean!
+  permissionType: String!
+  grantReason: String
+  revokedAt: BigInt
+  
+  # Computed fields
+  isExpired: Boolean!
+  hasValidAccess: Boolean!
+  
+  # Timestamps
+  updatedAt: BigInt!
+  
+  # Events
+  events: [AccessEvent!]! @derivedFrom(field: "permission")
+}
+
+"""
+Audit log entity
+"""
+type AuditLog @entity {
+  id: ID! # Log ID from contract
+  logId: BigInt!
+  actionType: ActionType!
+  actor: Institution!
+  targetAddress: Bytes
+  record: DataRecord
+  actionDetails: String!
+  dataHash: Bytes
+  success: Boolean!
+  timestamp: BigInt!
+  ipAddress: String
+  userAgent: String
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+"""
+Action types enum
+"""
+enum ActionType {
+  INSTITUTION_REGISTERED
+  DATA_UPLOADED
+  ACCESS_GRANTED
+  ACCESS_REVOKED
+  VERIFICATION_REQUESTED
+  VERIFICATION_COMPLETED
+  DATA_ACCESSED
+  DATA_DOWNLOADED
+  PERMISSION_UPDATED
+  RECORD_DEACTIVATED
+  RECORD_REACTIVATED
+}
+
+"""
+Institution event for tracking changes
+"""
+type InstitutionEvent @entity {
+  id: ID!
+  institution: Institution!
+  eventType: InstitutionEventType!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+enum InstitutionEventType {
+  REGISTERED
+  DEACTIVATED
+  REACTIVATED
+  UPDATED
+}
+
+"""
+Data record event for tracking changes
+"""
+type DataEvent @entity {
+  id: ID!
+  record: DataRecord!
+  eventType: DataEventType!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+enum DataEventType {
+  UPLOADED
+  DEACTIVATED
+  REACTIVATED
+  METADATA_UPDATED
+}
+
+"""
+Access permission event for tracking changes
+"""
+type AccessEvent @entity {
+  id: ID!
+  permission: AccessPermission!
+  eventType: AccessEventType!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+enum AccessEventType {
+  GRANTED
+  REVOKED
+  EXPIRED
+  UPDATED
+}
+
+"""
+Global statistics entity
+"""
+type GlobalStatistics @entity {
+  id: ID! # Always "1"
+  totalInstitutions: BigInt!
+  totalDataRecords: BigInt!
+  totalAccessPermissions: BigInt!
+  totalAuditLogs: BigInt!
+  totalVerifications: BigInt!
+  successfulVerifications: BigInt!
+  failedVerifications: BigInt!
+  lastUpdated: BigInt!
+}
+
+"""
+Daily statistics entity
+"""
+type DailyStatistics @entity {
+  id: ID! # Date in format: YYYY-MM-DD
+  date: String!
+  totalUploads: BigInt!
+  totalVerifications: BigInt!
+  totalAccessGrants: BigInt!
+  totalAccessRevocations: BigInt!
+  activeInstitutions: BigInt!
+  timestamp: BigInt!
+}
+

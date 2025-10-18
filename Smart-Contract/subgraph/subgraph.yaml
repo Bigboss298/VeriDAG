@@ -1,0 +1,128 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  # Institution Registry Contract
+  - kind: ethereum/contract
+    name: InstitutionRegistry
+    network: mainnet  # Change to your network: polygon, arbitrum, etc.
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Replace with deployed address
+      abi: InstitutionRegistry
+      startBlock: 0  # Replace with deployment block number
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Institution
+        - InstitutionEvent
+      abis:
+        - name: InstitutionRegistry
+          file: ../artifacts/contracts/InstitutionRegistry.sol/InstitutionRegistry.json
+      eventHandlers:
+        - event: InstitutionRegistered(indexed address,string,string,uint256)
+          handler: handleInstitutionRegistered
+        - event: InstitutionDeactivated(indexed address,uint256)
+          handler: handleInstitutionDeactivated
+        - event: InstitutionReactivated(indexed address,uint256)
+          handler: handleInstitutionReactivated
+        - event: InstitutionUpdated(indexed address,string,uint256)
+          handler: handleInstitutionUpdated
+      file: ./src/institution-registry.ts
+
+  # Data Vault Contract
+  - kind: ethereum/contract
+    name: DataVaultContract
+    network: mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Replace with deployed address
+      abi: DataVaultContract
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - DataRecord
+        - DataEvent
+      abis:
+        - name: DataVaultContract
+          file: ../artifacts/contracts/DataVaultContract.sol/DataVaultContract.json
+      eventHandlers:
+        - event: DataUploaded(indexed string,indexed address,bytes32,string,uint256)
+          handler: handleDataUploaded
+        - event: DataDeactivated(indexed string,indexed address,uint256)
+          handler: handleDataDeactivated
+        - event: DataReactivated(indexed string,indexed address,uint256)
+          handler: handleDataReactivated
+        - event: DataMetadataUpdated(indexed string,indexed address,uint256)
+          handler: handleDataMetadataUpdated
+      file: ./src/data-vault.ts
+
+  # Access Control Contract
+  - kind: ethereum/contract
+    name: AccessControlContract
+    network: mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Replace with deployed address
+      abi: AccessControlContract
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AccessPermission
+        - AccessEvent
+      abis:
+        - name: AccessControlContract
+          file: ../artifacts/contracts/AccessControlContract.sol/AccessControlContract.json
+      eventHandlers:
+        - event: AccessGranted(indexed string,indexed address,indexed address,string,uint256,uint256)
+          handler: handleAccessGranted
+        - event: AccessRevoked(indexed string,indexed address,indexed address,uint256)
+          handler: handleAccessRevoked
+        - event: AccessExpired(indexed string,indexed address,uint256)
+          handler: handleAccessExpired
+        - event: PermissionUpdated(indexed string,indexed address,indexed address,uint256)
+          handler: handlePermissionUpdated
+      file: ./src/access-control.ts
+
+  # Audit Trail Contract
+  - kind: ethereum/contract
+    name: AuditTrailContract
+    network: mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000000"  # Replace with deployed address
+      abi: AuditTrailContract
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AuditLog
+        - AuditStatistics
+      abis:
+        - name: AuditTrailContract
+          file: ../artifacts/contracts/AuditTrailContract.sol/AuditTrailContract.json
+      eventHandlers:
+        - event: AuditLogCreated(indexed uint256,indexed uint8,indexed address,string,bool,uint256)
+          handler: handleAuditLogCreated
+        - event: InstitutionRegisteredLog(indexed address,string,uint256)
+          handler: handleInstitutionRegisteredLog
+        - event: DataUploadedLog(indexed address,indexed bytes32,string,uint256)
+          handler: handleDataUploadedLog
+        - event: AccessGrantedLog(indexed address,indexed address,string,uint256)
+          handler: handleAccessGrantedLog
+        - event: AccessRevokedLog(indexed address,indexed address,string,uint256)
+          handler: handleAccessRevokedLog
+        - event: VerificationRequestedLog(indexed address,indexed bytes32,string,uint256)
+          handler: handleVerificationRequestedLog
+        - event: VerificationCompletedLog(indexed address,indexed bytes32,string,bool,uint256)
+          handler: handleVerificationCompletedLog
+        - event: DataAccessedLog(indexed address,string,uint256)
+          handler: handleDataAccessedLog
+      file: ./src/audit-trail.ts
+
